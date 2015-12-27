@@ -1,7 +1,10 @@
 package college.edu.tomer.fragmentsdemo;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -12,26 +15,39 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
+    private OnPictureTaken listener;
+
+    public void setListener(OnPictureTaken listener) {
+        this.listener = listener;
+    }
+
+
     @Bind(R.id.toolbar)
     Toolbar toolbar;
     @Bind(R.id.fab)
     FloatingActionButton fab;
+    @Bind(R.id.viewPager)
+    ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
+        viewPager.setAdapter(new MyFragmentAdapter(getSupportFragmentManager()));
         setSupportActionBar(toolbar);
+    }
 
-        getSupportFragmentManager().
-                beginTransaction().
-                add(R.id.layout1, new AboutFragment()).
-                add(R.id.layout2, new RatingFragment()).
-                add(R.id.layout3, new RatingFragment()).
-                commit();
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode==TakePictureFragment.ACTION_TAKEPICTURE){
+            if (resultCode == RESULT_OK){
+                Bitmap thumbnail = (Bitmap)data.getExtras().get("data");
+                listener.pictureTaken(thumbnail);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
