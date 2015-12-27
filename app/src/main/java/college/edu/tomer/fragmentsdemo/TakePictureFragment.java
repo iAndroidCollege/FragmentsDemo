@@ -2,12 +2,15 @@ package college.edu.tomer.fragmentsdemo;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -35,6 +38,7 @@ public class TakePictureFragment extends Fragment implements OnPictureTaken {
     ImageView ivTakePicture;
     @Bind(R.id.btnTakePicture)
     Button btnTakePicture;
+    private File myFile;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -48,16 +52,22 @@ public class TakePictureFragment extends Fragment implements OnPictureTaken {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == TakePictureFragment.ACTION_TAKEPICTURE) {
+            if (resultCode == Activity.RESULT_OK) {
+                pictureTaken();
+            }
+        }
     }
 
     @OnClick(R.id.btnTakePicture)
     void takePicture(View btn) {
+
         if (ActivityCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED) {
             doTakePicture();
         } else {
-            ActivityCompat.requestPermissions(getActivity(),
+            requestPermissions(
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     ACTION_TAKEPICTURE);
         }
@@ -67,11 +77,17 @@ public class TakePictureFragment extends Fragment implements OnPictureTaken {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == ACTION_TAKEPICTURE) {
             if (permissions[0].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 doTakePicture();
-            }
-            else {
-
+            } else {
+                Snackbar.make(btnTakePicture, "The App requires your permission", Snackbar.LENGTH_INDEFINITE).setAction("Settings", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        settingsIntent.setData(Uri.fromParts("package", getActivity().getPackageName(), null));
+                        startActivity(settingsIntent);
+                    }
+                });
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -84,13 +100,9 @@ public class TakePictureFragment extends Fragment implements OnPictureTaken {
         System.out.println(path);
 
         try {
-            File myFile = File.createTempFile("123", ".jpg", path);
-
+            myFile = File.createTempFile("123", ".jpg", path);
             camIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(myFile));
-            MainActivity a = (MainActivity) getActivity();
-            a.setListener(this);
-
-            getActivity().startActivityForResult(camIntent, ACTION_TAKEPICTURE);
+            startActivityForResult(camIntent, ACTION_TAKEPICTURE);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,16 +118,6 @@ public class TakePictureFragment extends Fragment implements OnPictureTaken {
 
     @Override
     public void pictureTaken() {
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        System.out.println(path);
-
-        try {
-            File myFile = File.createTempFile("123", ".jpg", path);
-            Picasso.with(getActivity()).load(myFile).into(ivTakePicture);
-        }
-        catch (Exception e){
-
-        }
+        Picasso.with(getActivity()).load(myFile).into(ivTakePicture);
     }
 }
