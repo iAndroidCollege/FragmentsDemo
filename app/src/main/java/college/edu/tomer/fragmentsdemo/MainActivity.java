@@ -1,7 +1,6 @@
 package college.edu.tomer.fragmentsdemo;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewPager;
@@ -43,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode==TakePictureFragment.ACTION_TAKEPICTURE){
             if (resultCode == RESULT_OK){
-                Bitmap thumbnail = (Bitmap)data.getExtras().get("data");
-                listener.pictureTaken(thumbnail);
+
+                listener.pictureTaken();
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
